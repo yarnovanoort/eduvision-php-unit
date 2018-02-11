@@ -1,2 +1,3 @@
-# eduvision-php-unit
-Unittest cursus voor Eduvision
+# Unit Testing in PHP
+
+This is the readme created by Yarno van Oort for Eduvision

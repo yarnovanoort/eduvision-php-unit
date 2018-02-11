@@ -1,0 +1,6 @@
+/.env
+/vendor
+/cache
+/composer.lock
+/phinx.yml
+/.DS_Store
