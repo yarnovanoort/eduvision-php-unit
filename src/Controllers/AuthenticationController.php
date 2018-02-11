@@ -8,7 +8,7 @@ use Phpunittest\Validation\Validator;
  * Class AuthenticationController
  * @package Phpunittest\Controllers
  */
-class AuthenticationController extends BaseController {
+class AuthenticationController extends BaseControllerWithDI {
 
     /**
      * Show the login page

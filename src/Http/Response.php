@@ -4,6 +4,8 @@ namespace Phpunittest\Http;
 use duncan3dc\Laravel\BladeInstance;
 use Kunststube\CSRFP\SignatureGenerator;
 use Sunra\PhpSimple\HtmlDomParser;
+use Phpunittest\Http\Request;
+
 
 /**
  * Class Response
@@ -25,12 +27,12 @@ class Response {
     /**
      * Constructor
      */
-    public function __construct(Request $request)
+    public function __construct(Request $request, SignatureGenerator $signer)
     {
         $this->request = $request;
         $this->blade = new BladeInstance(getenv('VIEWS_DIRECTORY'), getenv('CACHE_DIRECTORY'));
         $this->response_type = 'text/html';
-        $this->signer = new SignatureGenerator(getenv('CSRF_SECRET'));
+        $this->signer = $signer;
         $this->with['signer'] = $this->signer;
         $this->session = new Session();
         $this->with_input = false;

@@ -10,7 +10,7 @@ use Phpunittest\Validation\Validator;
  * Class RegisterController
  * @package Phpunittest\Controllers
  */
-class RegisterController extends BaseController {
+class RegisterController extends BaseControllerWithDI {
 
     /**
      * Show the registration page
