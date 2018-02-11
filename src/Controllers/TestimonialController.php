@@ -9,7 +9,7 @@ use Phpunittest\Validation\Validator;
  * Class TestimonialController
  * @package Phpunittest\Controllers
  */
-class TestimonialController extends BaseController {
+class TestimonialController extends BaseControllerWithDI {
 
     /**
      * Show the testimonials page

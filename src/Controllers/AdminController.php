@@ -8,7 +8,7 @@ use Cocur\Slugify\Slugify;
  * Class AdminController
  * @package Phpunittest\Controllers
  */
-class AdminController extends BaseController {
+class AdminController extends BaseControllerWithDI {
 
     /**
      * Saved edited page; called via ajax

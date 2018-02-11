@@ -80,4 +80,11 @@ class ValidatorTest extends \PHPUnit\Framework\TestCase
 
         $this->assertCount(1, $errors);
     }
+
+    public function testValidateWithInvalidData()
+    {
+        $this->testdata = ['check_field' => 'x'];
+        $this->setUpRequestResponse();
+        $this->validator->validate(['check_field' => 'email'], '/register');
+    }
 }
