@@ -7,30 +7,77 @@ use Phpunittest\Validation\Validator;
 
 class ValidatorTest extends \PHPUnit\Framework\TestCase
 {
+    protected $request;
+    protected $response;
+    protected $validator;
+    protected $testdata;
 
-    public function testGetIsValidReturnsTrue()
+    protected function setUpRequestResponse()
     {
-        $request = new Request([]);
-        $response = new Response($request);
+        if($this->testdata == null) {
+            $this->testdata = [];
+        }
 
-        $validator = new Validator($request, $response);
-
-        $validator->setIsValid(true);
-
-        $this->assertTrue($validator->getIsValid());
+        $this->request = new Request($this->testdata);
+        $this->response = new Response($this->request);
+        $this->validator = new Validator($this->request, $this->response);
 
     }
 
+    public function testGetIsValidReturnsTrue()
+    {
+        $this->setUpRequestResponse();
+        $this->validator->setIsValid(true);
+
+        $this->assertTrue($this->validator->getIsValid());
+    }
+
     public function testGetIsValidReturnsFalse()
-{
-    $request = new Request([]);
-    $response = new Response($request);
+    {
+        $this->setUpRequestResponse();
+        $this->validator->setIsValid(false);
 
-    $validator = new Validator($request, $response);
+        $this->assertFalse($this->validator->getIsValid());
 
-    $validator->setIsValid(false);
+    }
 
-    $this->assertFalse($validator->getIsValid());
+    public function testCheckForMinStringLengthWithValidData()
+    {
+        $this->testdata = ['name' => 'Yarno'];
+        $this->setUpRequestResponse();
 
-}
+        $errors = $this->validator->check(['name' => 'min:3']);
+
+        $this->assertCount(0, $errors);
+    }
+
+    public function testCheckForMinStringLengthWithInValidData()
+    {
+        $this->testdata = ['name' => 'Ya'];
+        $this->setUpRequestResponse();
+
+        $errors = $this->validator->check(['name' => 'min:3']);
+
+        $this->assertCount(1, $errors);
+    }
+
+    public function TestCheckForEmailWithValidData()
+    {
+        $this->testdata = ['email' => 'ik@yarnovanoort.nl'];
+        $this->setUpRequestResponse();
+
+        $errors = $this->validator->check(['email' => 'email']);
+
+        $this->assertCount(0, $errors);
+    }
+
+    public function TestCheckForEmailWithInValidData()
+    {
+        $this->testdata = ['email' => 'ik'];
+        $this->setUpRequestResponse();
+
+        $errors = $this->validator->check(['email' => 'email']);
+
+        $this->assertCount(1, $errors);
+    }
 }
