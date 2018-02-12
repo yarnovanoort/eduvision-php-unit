@@ -1,90 +1,198 @@
 <?php
 namespace Phpunittest\Tests;
 
-use Phpunittest\Http\Request;
-use Phpunittest\Http\Response;
 use Phpunittest\Validation\Validator;
+use Kunststube\CSRFP\SignatureGenerator;
+use Dotenv;
 
 class ValidatorTest extends \PHPUnit\Framework\TestCase
 {
     protected $request;
     protected $response;
     protected $validator;
-    protected $testdata;
+    protected $session;
+    protected $blade;
 
-    protected function setUpRequestResponse()
+    protected function setUp()
     {
-        if($this->testdata == null) {
-            $this->testdata = [];
-        }
+        $signer = $this->getMockBuilder('Kunststube\CSRFP\SignatureGenerator')
+            ->setConstructorArgs(['abc123'])
+            ->getMock();
 
-        $this->request = new Request($this->testdata);
-        $this->response = new Response($this->request);
-        $this->validator = new Validator($this->request, $this->response);
+        $this->request = $this->getMockBuilder('Phpunittest\Http\Request')
+            ->getMock();
 
+        $this->session = $this->getMockBuilder('Phpunittest\Http\Session')
+            ->getMock();
+
+        $this->blade = $this->getMockBuilder('duncan3dc\Laravel\BladeInstance')
+            ->setConstructorArgs(['abc', '123'])
+            ->getMock();
+
+        $this->response = $this->getMockBuilder('Phpunittest\Http\Response')
+            ->setConstructorArgs([$this->request, $signer, $this->blade, $this->session])
+            ->getMock();
     }
 
     public function testGetIsValidReturnsTrue()
     {
-        $this->setUpRequestResponse();
-        $this->validator->setIsValid(true);
+        $validator = new Validator($this->request, $this->response);
+        $validator->setIsValid(true);
 
-        $this->assertTrue($this->validator->getIsValid());
+        $this->assertTrue($validator->getIsValid());
     }
+
+
 
     public function testGetIsValidReturnsFalse()
     {
-        $this->setUpRequestResponse();
-        $this->validator->setIsValid(false);
+        $validator = new Validator($this->request, $this->response);
+        $validator->setIsValid(false);
 
-        $this->assertFalse($this->validator->getIsValid());
+        $this->assertFalse($validator->getIsValid());
 
     }
 
     public function testCheckForMinStringLengthWithValidData()
     {
-        $this->testdata = ['name' => 'Yarno'];
-        $this->setUpRequestResponse();
+        $req = $this->getMockBuilder('Phpunittest\Http\Request')
+            ->getMock();
 
-        $errors = $this->validator->check(['name' => 'min:3']);
+        $req->expects($this->once())
+            ->method('input')
+            ->will($this->returnValue('Yarno'));
+
+        $validator = new Validator($req, $this->response);
+
+        $errors = $validator->check(['name' => 'min:3']);
 
         $this->assertCount(0, $errors);
     }
 
     public function testCheckForMinStringLengthWithInValidData()
     {
-        $this->testdata = ['name' => 'Ya'];
-        $this->setUpRequestResponse();
+        $req = $this->getMockBuilder('Phpunittest\Http\Request')
+            ->getMock();
 
-        $errors = $this->validator->check(['name' => 'min:3']);
+        $req->expects($this->once())
+            ->method('input')
+            ->will($this->returnValue('Ya'));
+
+        $validator = new Validator($req, $this->response);
+
+        $errors = $validator->check(['name' => 'min:3']);
 
         $this->assertCount(1, $errors);
     }
 
     public function TestCheckForEmailWithValidData()
     {
-        $this->testdata = ['email' => 'ik@yarnovanoort.nl'];
-        $this->setUpRequestResponse();
+        $req = $this->getMockBuilder('Phpunittest\Http\Request')
+            ->getMock();
 
-        $errors = $this->validator->check(['email' => 'email']);
+        $req->expects($this->once())
+            ->method('input')
+            ->will($this->returnValue('ik@yarnovanoort.nl'));
+
+        $validator = new Validator($req, $this->response);
+
+        $errors = $validator->check(['email' => 'email']);
 
         $this->assertCount(0, $errors);
     }
 
     public function TestCheckForEmailWithInValidData()
     {
-        $this->testdata = ['email' => 'ik'];
-        $this->setUpRequestResponse();
+        $req = $this->getMockBuilder('Phpunittest\Http\Request')
+            ->getMock();
 
-        $errors = $this->validator->check(['email' => 'email']);
+        $req->expects($this->once())
+            ->method('input')
+            ->will($this->returnValue('ik'));
+
+        $validator = new Validator($req, $this->response);
+
+        $errors = $validator->check(['email' => 'email']);
 
         $this->assertCount(1, $errors);
     }
 
-    public function testValidateWithInvalidData()
+    public function testCheckForEqualToWithValidData()
     {
-        $this->testdata = ['check_field' => 'x'];
-        $this->setUpRequestResponse();
-        $this->validator->validate(['check_field' => 'email'], '/register');
+        $req = $this->getMockBuilder('Phpunittest\Http\Request')
+            ->getMock();
+
+        $req->expects($this->at(0))
+            ->method('input')
+            ->will($this->returnValue('Yarno'));
+
+        $req->expects($this->at(1))
+            ->method('input')
+            ->will($this->returnValue('Yarno'));
+
+        $validator = new Validator($req, $this->response, $this->session);
+
+        $errors = $validator->check(['field_1' => 'equalTo:another_field']);
+
+        $this->assertCount(0, $errors);
+    }
+
+    public function testCheckForEqualToWithInValidData()
+    {
+        $req = $this->getMockBuilder('Phpunittest\Http\Request')
+            ->getMock();
+
+        $req->expects($this->at(0))
+            ->method('input')
+            ->will($this->returnValue('Yarno'));
+
+        $req->expects($this->at(1))
+            ->method('input')
+            ->will($this->returnValue('Yar'));
+
+        $validator = new Validator($req, $this->response, $this->session);
+
+        $errors = $validator->check(['field_1' => 'equalTo:another_field']);
+
+        $this->assertCount(1, $errors);
+    }
+
+    public function testCheckForUniqueWithValidData()
+    {
+        $validator = $this->getMockBuilder('Phpunittest\Validation\Validator')
+            ->setConstructorArgs([$this->request, $this->response, $this->session])
+            ->setMethods(['getRows'])
+            ->getMock();
+
+        $validator->method('getRows')
+            ->willReturn([]);
+
+        $errors = $validator->check(['field' => 'unique:User']);
+        $this->assertCount(0, $errors);
+    }
+
+    public function testCheckForUniqueWithInValidData()
+    {
+        $validator = $this->getMockBuilder('Phpunittest\Validation\Validator')
+            ->setConstructorArgs([ $this->request, $this->response, $this->session])
+            ->setMethods(['getRows'])
+            ->getMock();
+
+        $validator->method('getRows')
+            ->willReturn(['a']);
+
+        $errors = $validator->check(['field' => 'unique:User']);
+        $this->assertCount(1, $errors);
+    }
+
+    public function testValidateWithValidData()
+    {
+        $validator = $this->getMockBuilder('Phpunittest\Validation\Validator')
+            ->setConstructorArgs([$this->request, $this->response, $this->session])
+            ->setMethods(['check'])
+            ->getMock();
+
+        $isValid = $validator->validate(['foo' => 'min:3'], '/register');
+        $this->assertTrue($isValid);
     }
 }
