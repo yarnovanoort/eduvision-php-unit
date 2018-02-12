@@ -66,7 +66,7 @@ class Validator {
                     case 'unique':
                         $model = "Phpunittest\\models\\" . $exploded[1];
                         $table = new $model;
-                        $results = $table::where($name, '=', $this->request->input($name))->get();
+                        $results = $this->getRows($table, $name);
                         foreach ($results as $item) {
                             $errors[] = $this->request->input($name) . " already exists in this system!";
                         }
@@ -92,10 +92,7 @@ class Validator {
         $errors = $this->check($rules);
 
         if (sizeof($errors) > 0) {
-            $this->session->put('_error', $errors);
-            $this->isValid = false;
-            $this->response->withInput();
-            $this->response->withView($url)->render();
+            $this->redirectToPage($url, $errors);
             exit;
         } else {
             $this->isValid = true;
@@ -119,6 +116,30 @@ class Validator {
     public function setIsValid($isValid)
     {
         $this->isValid = $isValid;
+    }
+
+    /**
+     * @param $table
+     * @param $name
+     * @return mixed
+     */
+    public function getRows($table, $name)
+    {
+        $results = $table::where($name, '=', $this->request->input($name))->get();
+
+        return $results;
+    }
+
+    /**
+     * @param $url
+     * @param $errors
+     */
+    public function redirectToPage($url, $errors)
+    {
+        $this->session->put('_error', $errors);
+        $this->isValid = false;
+        $this->response->withInput();
+        $this->response->withView($url)->render();
     }
 
 }
