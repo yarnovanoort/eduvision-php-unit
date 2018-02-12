@@ -66,5 +66,4 @@ class PageController extends BaseControllerWithDI {
             ->withResponseCode(404)
             ->render();
     }
-
 }
